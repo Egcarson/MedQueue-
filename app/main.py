@@ -1,4 +1,5 @@
 from fastapi import FastAPI
+from app.database import engine, Base
 from sqlalchemy.orm import Session
 from apscheduler.schedulers.background import BackgroundScheduler
 from contextlib import asynccontextmanager
@@ -37,13 +38,11 @@ def start_scheduler():
     scheduler.start()
     return scheduler
 
-# Use asynccontextmanager for lifespan management
-
-
-@asynccontextmanager
-async def lifespan(app: FastAPI):
-    # Start the scheduler during app startup
-    scheduler = start_scheduler()
+# Call this function during app startup
+@app.lifespan
+def app_lifespan(app: FastAPI) -> Lifespan:
+    # Start the scheduler
+    scheduler = schedule_cleanup()
 
     yield  # Wait for the app to shut down
 
